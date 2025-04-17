@@ -22,6 +22,7 @@ class PowerUp(Entity):
         # 创建基本的圆形表示
         size = 30
         self.power_type = power_type
+        self.collected = False  # 添加collected属性，初始值为False
         
         # 根据道具类型选择颜色
         color_map = {
@@ -70,13 +71,15 @@ class PowerUp(Entity):
         self.center_x = self.x + self.w / 2
         self.center_y = self.y + self.h / 2
     
-    def draw(self) -> None:
-        self.x += self.vel_x  # 更新位置
-        # 更新中心坐标
-        self.center_x = self.x + self.w / 2
-        self.center_y = self.y + self.h / 2
-        self.animate()  # 更新动画
-        super().draw()  # 调用父类绘制方法
+    def draw(self, surface) -> None:
+        """
+        绘制道具实体
+        
+        :param surface: 绘制的目标表面
+        """
+        if not self.collected:  # 如果道具未被收集
+            self.x += self.vel_x  # 更新道具位置
+            super().draw(surface)  # 调用父类的绘制方法，传递surface参数
     
     def animate(self) -> None:
         """使道具产生脉动动画效果"""

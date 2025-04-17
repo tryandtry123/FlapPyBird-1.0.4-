@@ -22,10 +22,12 @@ class Floor(Entity):
         """
         self.vel_x = 0
 
-    def draw(self) -> None:
+    def draw(self, surface) -> None:
         """
         绘制地面实体。
+        
+        :param surface: 绘制的目标表面
         """
         # 使地面实体循环绘制
         self.x = -((-self.x + self.vel_x) % self.x_extra)
-        super().draw()
+        super().draw(surface)

@@ -92,7 +92,7 @@ class Entity:  # 定义实体基类，所有游戏实体的父类
         """
         更新实体状态。
         """
-        self.draw()  # 绘制实体
+        self.draw(self.config.screen)  # 绘制实体，传递screen参数
         rect = self.rect  # 获取矩形区域
         if self.config.debug:  # 如果调试模式开启
             pygame.draw.rect(self.config.screen, (255, 0, 0), rect, 1)  # 绘制红色矩形框
@@ -104,9 +104,11 @@ class Entity:  # 定义实体基类，所有游戏实体的父类
                 rect.y - text.get_height(),
             ))  # 在屏幕上绘制文本
 
-    def draw(self) -> None:  # 绘制实体
+    def draw(self, surface) -> None:  # 绘制实体
         """
         绘制实体。
+        
+        :param surface: 绘制的目标表面
         """
         if self.image:  # 如果有图像
-            self.config.screen.blit(self.image, self.rect)  # 在屏幕上绘制图像
+            surface.blit(self.image, self.rect)  # 在指定表面上绘制图像

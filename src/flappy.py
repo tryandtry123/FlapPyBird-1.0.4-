@@ -17,6 +17,7 @@ from .entities import (
 from .entities.powerup import PowerUpManager, PowerUpType
 from .utils import GameConfig, Images, Sounds, Window
 from enum import Enum
+import random
 
 
 class GameMode(Enum):
@@ -24,6 +25,9 @@ class GameMode(Enum):
     CLASSIC = "经典模式"    # 经典无限模式
     TIMED = "限时挑战"      # 限时挑战模式
     REVERSE = "反向模式"    # 重力反转模式
+    GHOST = "穿越模式"       # 穿越模式
+    NIGHT = "夜间模式"       # 夜间模式
+    SPEED = "极速模式"       # 极速模式
 
 
 class Flappy:
@@ -86,6 +90,9 @@ class Flappy:
         classic_text = mode_font.render("Classic Mode", True, (255, 255, 255))
         timed_text = mode_font.render("Timed Challenge", True, (255, 255, 255))
         reverse_text = mode_font.render("Reverse Mode", True, (255, 255, 255))  # 添加反向模式文本
+        ghost_text = mode_font.render("Ghost Mode", True, (255, 255, 255))  # 添加穿越模式文本
+        night_text = mode_font.render("Night Mode", True, (255, 255, 255))  # 添加夜间模式文本
+        speed_text = mode_font.render("Speed Mode", True, (255, 255, 255))  # 添加极速模式文本
         instruction_text = instruction_font.render("UP/DOWN to select, SPACE to start", True, (220, 220, 220))
         
         # 为选择框准备颜色和大小
@@ -100,8 +107,14 @@ class Flappy:
                     self.config.window.height//2 + 70)  # 调整限时模式位置
         reverse_pos = (self.config.window.width//2 - reverse_text.get_width()//2, 
                       self.config.window.height//2 + 120)  # 添加反向模式位置
+        ghost_pos = (self.config.window.width//2 - ghost_text.get_width()//2, 
+                    self.config.window.height//2 + 170)  # 添加穿越模式位置
+        night_pos = (self.config.window.width//2 - night_text.get_width()//2, 
+                    self.config.window.height//2 + 220)  # 添加夜间模式位置
+        speed_pos = (self.config.window.width//2 - speed_text.get_width()//2, 
+                    self.config.window.height//2 + 270)  # 添加极速模式位置
         instruction_pos = (self.config.window.width//2 - instruction_text.get_width()//2, 
-                          self.config.window.height//2 + 180)  # 调整指示文本位置
+                          self.config.window.height//2 + 320)  # 调整指示文本位置
         
         # 为按钮创建矩形
         classic_rect = pygame.Rect(classic_pos[0] - 20, classic_pos[1] - 10, 
@@ -110,20 +123,30 @@ class Flappy:
                                timed_text.get_width() + 40, timed_text.get_height() + 20)
         reverse_rect = pygame.Rect(reverse_pos[0] - 20, reverse_pos[1] - 10, 
                                  reverse_text.get_width() + 40, reverse_text.get_height() + 20)  # 添加反向模式矩形
+        ghost_rect = pygame.Rect(ghost_pos[0] - 20, ghost_pos[1] - 10, 
+                                ghost_text.get_width() + 40, ghost_text.get_height() + 20)  # 添加穿越模式矩形
+        night_rect = pygame.Rect(night_pos[0] - 20, night_pos[1] - 10, 
+                                night_text.get_width() + 40, night_text.get_height() + 20)  # 添加夜间模式矩形
+        speed_rect = pygame.Rect(speed_pos[0] - 20, speed_pos[1] - 10, 
+                                speed_text.get_width() + 40, speed_text.get_height() + 20)  # 添加极速模式矩形
         
         # 默认选择经典模式
         self.game_mode = GameMode.CLASSIC
-        selected_index = 0  # 0表示经典模式，1表示限时模式，2表示反向模式
+        selected_index = 0  # 0表示经典模式，1表示限时模式，2表示反向模式，3表示穿越模式，4表示夜间模式，5表示极速模式
 
         while True:
             for event in pygame.event.get():
                 self.check_quit_event(event)  # 检查退出事件
                 
+                # 添加调试信息
+                if event.type == KEYDOWN:
+                    print(f"按键按下: {event.key}, pygame.K_m = {pygame.K_m}")
+                    
                 # 处理模式选择
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_DOWN:
                         # 向下切换模式
-                        selected_index = (selected_index + 1) % 3  # 循环切换三种模式
+                        selected_index = (selected_index + 1) % 6  # 循环切换六种模式
                         if selected_index == 0:
                             self.game_mode = GameMode.CLASSIC
                         elif selected_index == 1:
@@ -132,10 +155,16 @@ class Flappy:
                             self.time_remaining = self.time_limit
                         elif selected_index == 2:
                             self.game_mode = GameMode.REVERSE
+                        elif selected_index == 3:
+                            self.game_mode = GameMode.GHOST
+                        elif selected_index == 4:
+                            self.game_mode = GameMode.NIGHT
+                        elif selected_index == 5:
+                            self.game_mode = GameMode.SPEED
                         self.config.sounds.swoosh.play()
                     elif event.key == pygame.K_UP:
                         # 向上切换模式
-                        selected_index = (selected_index - 1) % 3  # 循环切换三种模式
+                        selected_index = (selected_index - 1) % 6  # 循环切换六种模式
                         if selected_index == 0:
                             self.game_mode = GameMode.CLASSIC
                         elif selected_index == 1:
@@ -144,6 +173,12 @@ class Flappy:
                             self.time_remaining = self.time_limit
                         elif selected_index == 2:
                             self.game_mode = GameMode.REVERSE
+                        elif selected_index == 3:
+                            self.game_mode = GameMode.GHOST
+                        elif selected_index == 4:
+                            self.game_mode = GameMode.NIGHT
+                        elif selected_index == 5:
+                            self.game_mode = GameMode.SPEED
                         self.config.sounds.swoosh.play()
                 
                 # 空格或上箭头开始游戏
@@ -189,10 +224,43 @@ class Flappy:
                 pygame.draw.rect(self.config.screen, (30, 30, 30), reverse_rect)  # 浅色填充
                 pygame.draw.rect(self.config.screen, box_color_inactive, reverse_rect, 2, border_radius=5)  # 边框
             
+            # 绘制穿越模式按钮
+            if selected_index == 3:
+                # 活跃按钮
+                pygame.draw.rect(self.config.screen, (50, 50, 50), ghost_rect)  # 深色填充
+                pygame.draw.rect(self.config.screen, box_color_active, ghost_rect, 3, border_radius=5)  # 边框
+            else:
+                # 非活跃按钮
+                pygame.draw.rect(self.config.screen, (30, 30, 30), ghost_rect)  # 浅色填充
+                pygame.draw.rect(self.config.screen, box_color_inactive, ghost_rect, 2, border_radius=5)  # 边框
+            
+            # 绘制夜间模式按钮
+            if selected_index == 4:
+                # 活跃按钮
+                pygame.draw.rect(self.config.screen, (50, 50, 50), night_rect)  # 深色填充
+                pygame.draw.rect(self.config.screen, box_color_active, night_rect, 3, border_radius=5)  # 边框
+            else:
+                # 非活跃按钮
+                pygame.draw.rect(self.config.screen, (30, 30, 30), night_rect)  # 浅色填充
+                pygame.draw.rect(self.config.screen, box_color_inactive, night_rect, 2, border_radius=5)  # 边框
+            
+            # 绘制极速模式按钮
+            if selected_index == 5:
+                # 活跃按钮
+                pygame.draw.rect(self.config.screen, (50, 50, 50), speed_rect)  # 深色填充
+                pygame.draw.rect(self.config.screen, box_color_active, speed_rect, 3, border_radius=5)  # 边框
+            else:
+                # 非活跃按钮
+                pygame.draw.rect(self.config.screen, (30, 30, 30), speed_rect)  # 浅色填充
+                pygame.draw.rect(self.config.screen, box_color_inactive, speed_rect, 2, border_radius=5)  # 边框
+            
             # 绘制文本
             self.config.screen.blit(classic_text, classic_pos)
             self.config.screen.blit(timed_text, timed_pos)
             self.config.screen.blit(reverse_text, reverse_pos)
+            self.config.screen.blit(ghost_text, ghost_pos)
+            self.config.screen.blit(night_text, night_pos)
+            self.config.screen.blit(speed_text, speed_pos)
             self.config.screen.blit(instruction_text, instruction_pos)
             
             pygame.display.update()  # 刷新显示
@@ -336,6 +404,15 @@ class Flappy:
         # 根据游戏模式设置玩家模式
         if self.game_mode == GameMode.REVERSE:
             self.player.set_mode(PlayerMode.REVERSE)  # 设置玩家模式为REVERSE（反向模式）
+        elif self.game_mode == GameMode.GHOST:
+            self.player.set_mode(PlayerMode.GHOST)  # 设置玩家模式为GHOST（穿越模式）
+        elif self.game_mode == GameMode.NIGHT:
+            self.player.set_mode(PlayerMode.NIGHT)  # 设置玩家模式为NIGHT（夜间模式）
+        elif self.game_mode == GameMode.SPEED:
+            self.player.set_mode(PlayerMode.SPEED)  # 设置玩家模式为SPEED（极速模式）
+            # 在极速模式下加快管道移动速度
+            for pipe in self.pipes.upper + self.pipes.lower:
+                pipe.vel_x = -8  # 增加管道速度
         else:
             self.player.set_mode(PlayerMode.NORMAL)  # 设置玩家模式为NORMAL（正常模式）
             
@@ -358,8 +435,34 @@ class Flappy:
 
             for event in pygame.event.get():
                 self.check_quit_event(event)  # 检查退出事件
+                if event.type == KEYDOWN:
+                    print(f"按键按下: {event.key}, pygame.K_m = {pygame.K_m}")
+                    
                 if self.is_tap_event(event):
                     self.player.flap()  # 玩家点击，执行拍打动作
+                elif event.type == KEYDOWN and event.key == pygame.K_m and self.game_mode == GameMode.GHOST:
+                    print(f"M键被按下! 游戏模式: {self.game_mode}, 是否为穿越模式: {self.game_mode == GameMode.GHOST}")
+                    # 激活穿越模式
+                    self.player.activate_ghost()
+                    # 检查是否成功激活穿越
+                    if self.player.is_ghost_mode and not self.player.ghost_ready:
+                        # 穿越：立即摧毁所有屏幕上可见的管道
+                        pipes_destroyed = 0
+                        for pipe in self.pipes.upper + self.pipes.lower:
+                            if not pipe.destroyed and pipe.x > 0 and pipe.x < self.config.window.width:
+                                pipe.destroy()
+                                pipes_destroyed += 1
+                        
+                        # 根据摧毁的管道数量，播放对应数量的得分音效
+                        if pipes_destroyed > 0:
+                            self.config.sounds.point.play()
+                            print(f"Ghost activated! {pipes_destroyed} pipes destroyed.")
+                    # 穿越：立即摧毁所有管道
+                    # for pipe in self.pipes.upper + self.pipes.lower:
+                    #     if not pipe.destroyed:
+                    #         pipe.destroy()
+                    #         self.config.sounds.point.play()
+                    # print("Ghost activated! Pipes destroyed.")
 
             # 限时模式时间更新
             if self.game_mode == GameMode.TIMED:
@@ -379,7 +482,7 @@ class Flappy:
             
             # 检查管道通过情况并更新分数
             self.check_pipe_pass()
-
+            
             self.background.tick()  # 更新背景
             self.floor.tick()  # 更新地面
             self.pipes.tick()  # 更新管道
@@ -422,7 +525,60 @@ class Flappy:
                         warning_text = time_font.render("Time running out!", True, (255, 255, 255))
                         warning_text_rect = warning_text.get_rect(center=(self.config.window.width//2, 50))
                         self.config.screen.blit(warning_text, warning_text_rect)
-
+                        
+            # 夜间模式特效
+            if self.game_mode == GameMode.NIGHT:
+                # 创建一个全屏黑色半透明图层模拟黑夜
+                darkness = pygame.Surface((self.config.window.width, self.config.window.height), pygame.SRCALPHA)
+                darkness.fill((0, 0, 0, 180))  # 黑色半透明
+                
+                # 在玩家周围创建一个视野圆圈
+                vision_range = self.player.night_vision_range
+                pygame.draw.circle(
+                    darkness,
+                    (0, 0, 0, 0),  # 完全透明
+                    (int(self.player.x + self.player.w//2), int(self.player.y + self.player.h//2)),
+                    vision_range
+                )
+                
+                # 添加渐变效果到视野边缘
+                for i in range(30):
+                    pygame.draw.circle(
+                        darkness,
+                        (0, 0, 0, i * 6),  # 逐渐增加透明度
+                        (int(self.player.x + self.player.w//2), int(self.player.y + self.player.h//2)),
+                        vision_range + 30 - i
+                    )
+                
+                # 应用黑暗效果
+                self.config.screen.blit(darkness, (0, 0))
+            
+            # 极速模式特效
+            if self.game_mode == GameMode.SPEED:
+                # 创建速度线效果
+                for i in range(10):
+                    line_length = random.randint(20, 60)
+                    line_y = random.randint(0, self.config.window.height)
+                    line_x = random.randint(0, self.config.window.width)
+                    line_color = (255, 255, 255, 100)  # 白色半透明
+                    
+                    pygame.draw.line(
+                        self.config.screen,
+                        line_color,
+                        (line_x, line_y),
+                        (line_x - line_length, line_y),
+                        2
+                    )
+                
+                # 显示速度提示
+                speed_font = pygame.font.SysFont('microsoftyahei', 20)
+                speed_text = speed_font.render("极速模式!", True, (255, 255, 0))
+                speed_rect = speed_text.get_rect(topright=(self.config.window.width - 20, 20))
+                
+                # 创建一个闪烁效果
+                if pygame.time.get_ticks() % 1000 < 500:
+                    self.config.screen.blit(speed_text, speed_rect)
+            
             pygame.display.update()  # 刷新显示
             await asyncio.sleep(0)  # 等待下一帧
             self.config.tick()  # 更新游戏配置

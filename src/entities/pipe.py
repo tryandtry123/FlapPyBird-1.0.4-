@@ -9,10 +9,22 @@ class Pipe(Entity):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.vel_x = -5  # 管道的水平速度
+        self.destroyed = False  # 是否被炮弹摧毁
 
-    def draw(self) -> None:
-        self.x += self.vel_x  # 更新管道位置
-        super().draw()  # 调用父类的绘制方法
+    def draw(self, surface) -> None:
+        """
+        绘制管道实体
+        
+        :param surface: 绘制的目标表面
+        """
+        if not self.destroyed:  # 如果管道没有被摧毁
+            self.x += self.vel_x  # 更新管道位置
+            super().draw(surface)  # 调用父类的绘制方法，传递surface参数
+            
+    def destroy(self) -> None:
+        """摧毁管道"""
+        self.destroyed = True
+        self.vel_x = -10  # 加速离开屏幕
 
 
 class Pipes(Entity):
@@ -36,6 +48,17 @@ class Pipes(Entity):
         for up_pipe, low_pipe in zip(self.upper, self.lower):
             up_pipe.tick()  # 更新上方管道状态
             low_pipe.tick()  # 更新下方管道状态
+            
+    def check_bomb_collision(self, player) -> None:
+        """检查炮弹与管道的碰撞"""
+        if player.is_bomb_mode and not player.bomb_ready:
+            print(f"Checking bomb collision: is_bomb_mode={player.is_bomb_mode}, bomb_ready={player.bomb_ready}")
+            # 检查所有管道
+            for pipe in self.upper + self.lower:
+                if not pipe.destroyed and player.collide(pipe):
+                    pipe.destroy()  # 摧毁管道
+                    self.config.sounds.point.play()  # 播放得分音效
+                    print("Pipe destroyed!")
 
     def stop(self) -> None:
         for pipe in self.upper + self.lower:

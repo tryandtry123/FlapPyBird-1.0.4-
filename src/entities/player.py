@@ -17,6 +17,9 @@ class PlayerMode(Enum):
     CRASH = "CRASH"  # 撞击模式
     CRASHED = "CRASHED"  # 撞击模式
     REVERSE = "REVERSE"  # 反向模式
+    GHOST = "GHOST"  # 穿越模式
+    NIGHT = "NIGHT"  # 夜间模式
+    SPEED = "SPEED"  # 极速模式
 
 
 class Player(Entity):
@@ -38,6 +41,19 @@ class Player(Entity):
         self.size_modifier = 1.0   # 大小修改器
         self.original_image = None # 保存原始图像
         self.is_reverse_mode = False  # 是否为反向模式
+        # 爆炸效果相关属性
+        self.explosion_active = False
+        self.explosion_start_time = 0
+        self.explosion_duration = 500  # 爆炸持续时间(毫秒)
+        # 穿越模式相关属性
+        self.is_ghost_mode = False  # 是否为穿越模式
+        self.ghost_alpha = 160  # 穿越模式下的透明度
+        # 夜间模式相关属性
+        self.is_night_mode = False  # 是否为夜间模式
+        self.night_vision_range = 120  # 夜视范围
+        # 极速模式相关属性
+        self.is_speed_mode = False  # 是否为极速模式
+        self.speed_boost = 2.0  # 速度提升倍数
         self.set_mode(PlayerMode.SHM)
         
     def apply_powerup_effect(self, powerup_type: PowerUpType) -> None:
@@ -88,12 +104,15 @@ class Player(Entity):
         elif mode == PlayerMode.REVERSE:
             self.reset_vals_reverse()
             self.config.sounds.wing.play()
-        elif mode == PlayerMode.CRASH:
-            self.stop_wings()
-            self.config.sounds.hit.play()
-            if self.crash_entity == "pipe":
-                self.config.sounds.die.play()
-            self.reset_vals_crash()
+        elif mode == PlayerMode.GHOST:
+            self.reset_vals_ghost()
+            self.config.sounds.wing.play()
+        elif mode == PlayerMode.NIGHT:
+            self.reset_vals_night()
+            self.config.sounds.wing.play()
+        elif mode == PlayerMode.SPEED:
+            self.reset_vals_speed()
+            self.config.sounds.wing.play()
 
     def reset_vals_normal(self) -> None:
         self.vel_y = -9  # player's velocity along Y axis
@@ -143,6 +162,60 @@ class Player(Entity):
         self.vel_y = 7
         self.max_vel_y = 15
         self.vel_rot = -8
+
+    def reset_vals_ghost(self) -> None:
+        """重置穿越模式的值"""
+        self.vel_y = -9  # 初始速度
+        self.max_vel_y = 10  # 最大速度
+        self.min_vel_y = -8  # 最小速度
+        self.acc_y = 1  # 重力加速度
+
+        self.rot = 80  # 初始旋转角度
+        self.vel_rot = -3  # 旋转速度
+        self.rot_min = -90  # 最小旋转角度
+        self.rot_max = 20  # 最大旋转角度
+
+        self.flap_acc = -9  # 拍打加速度
+        self.flapped = False  # 拍打状态
+        
+        # 穿越模式相关
+        self.is_ghost_mode = True  # 确保设置穿越模式标志
+
+    def reset_vals_night(self) -> None:
+        """重置夜间模式的值"""
+        self.vel_y = -9  # 初始速度
+        self.max_vel_y = 10  # 最大速度
+        self.min_vel_y = -8  # 最小速度
+        self.acc_y = 1  # 重力加速度
+
+        self.rot = 80  # 初始旋转角度
+        self.vel_rot = -3  # 旋转速度
+        self.rot_min = -90  # 最小旋转角度
+        self.rot_max = 20  # 最大旋转角度
+
+        self.flap_acc = -9  # 拍打加速度
+        self.flapped = False  # 拍打状态
+        
+        # 夜间模式相关
+        self.is_night_mode = True  # 确保设置夜间模式标志
+
+    def reset_vals_speed(self) -> None:
+        """重置极速模式的值"""
+        self.vel_y = -9  # 初始速度
+        self.max_vel_y = 10  # 最大速度
+        self.min_vel_y = -8  # 最小速度
+        self.acc_y = 1  # 重力加速度
+
+        self.rot = 80  # 初始旋转角度
+        self.vel_rot = -3  # 旋转速度
+        self.rot_min = -90  # 最小旋转角度
+        self.rot_max = 20  # 最大旋转角度
+
+        self.flap_acc = -9  # 拍打加速度
+        self.flapped = False  # 拍打状态
+        
+        # 极速模式相关
+        self.is_speed_mode = True  # 确保设置极速模式标志
 
     def update_image(self):
         self.frame += 1
@@ -201,10 +274,51 @@ class Player(Entity):
         if self.vel_y < self.max_vel_y:
             self.vel_y += self.acc_y
 
+    def tick_ghost(self) -> None:
+        """穿越模式的更新逻辑"""
+        if self.vel_y < self.max_vel_y and not self.flapped:
+            self.vel_y += self.acc_y
+        if self.flapped:
+            self.flapped = False
+
+        # 应用速度修改器
+        adjusted_vel_y = self.vel_y * self.speed_modifier
+        self.y = clamp(self.y + adjusted_vel_y, self.min_y, self.max_y)
+        self.rotate()
+
+    def tick_night(self) -> None:
+        """夜间模式的更新逻辑"""
+        if self.vel_y < self.max_vel_y and not self.flapped:
+            self.vel_y += self.acc_y
+        if self.flapped:
+            self.flapped = False
+
+        # 应用速度修改器
+        adjusted_vel_y = self.vel_y * self.speed_modifier
+        self.y = clamp(self.y + adjusted_vel_y, self.min_y, self.max_y)
+        self.rotate()
+
+    def tick_speed(self) -> None:
+        """极速模式的更新逻辑"""
+        if self.vel_y < self.max_vel_y and not self.flapped:
+            self.vel_y += self.acc_y
+        if self.flapped:
+            self.flapped = False
+
+        # 应用速度修改器
+        adjusted_vel_y = self.vel_y * self.speed_boost
+        self.y = clamp(self.y + adjusted_vel_y, self.min_y, self.max_y)
+        self.rotate()
+
     def rotate(self) -> None:
         self.rot = clamp(self.rot + self.vel_rot, self.rot_min, self.rot_max)
 
-    def draw(self) -> None:
+    def draw(self, surface) -> None:
+        """
+        绘制玩家实体
+        
+        :param surface: 绘制的目标表面
+        """
         self.update_image()
         if self.mode == PlayerMode.SHM:
             self.tick_shm()
@@ -212,21 +326,52 @@ class Player(Entity):
             self.tick_normal()
         elif self.mode == PlayerMode.REVERSE:
             self.tick_reverse()
-        elif self.mode == PlayerMode.CRASH:
-            self.tick_crash()
+        elif self.mode == PlayerMode.GHOST:
+            self.tick_ghost()
+        elif self.mode == PlayerMode.NIGHT:
+            self.tick_night()
+        elif self.mode == PlayerMode.SPEED:
+            self.tick_speed()
 
-        self.draw_player()
+        self.draw_player(surface)
 
-    def draw_player(self) -> None:
+    def draw_player(self, surface) -> None:
+        """
+        绘制玩家图像
+        
+        :param surface: 绘制的目标表面
+        """
         rotated_image = pygame.transform.rotate(self.image, self.rot)
         rotated_rect = rotated_image.get_rect(center=self.rect.center)
+        
+        # 爆炸效果渲染
+        if self.explosion_active:
+            current_time = pygame.time.get_ticks()
+            elapsed = current_time - self.explosion_start_time
+            if elapsed < self.explosion_duration:
+                # 爆炸渐变半径
+                max_size = max(rotated_rect.width, rotated_rect.height)
+                radius = int(max_size * (elapsed / self.explosion_duration) * 2)
+                # 创建透明圆形表面
+                explosion_surf = pygame.Surface((radius*2, radius*2), pygame.SRCALPHA)
+                alpha = max(0, 255 - int(255 * (elapsed / self.explosion_duration)))
+                pygame.draw.circle(
+                    explosion_surf,
+                    (255, 165, 0, alpha),  # 橙色爆炸
+                    (radius, radius),
+                    radius
+                )
+                exp_rect = explosion_surf.get_rect(center=rotated_rect.center)
+                surface.blit(explosion_surf, exp_rect)
+            else:
+                self.explosion_active = False
         
         # 无敌状态时添加闪烁效果
         if self.invincible and pygame.time.get_ticks() % 200 < 100:
             # 创建一个带有透明度的副本
             alpha_image = rotated_image.copy()
             alpha_image.set_alpha(150)
-            self.config.screen.blit(alpha_image, rotated_rect)
+            surface.blit(alpha_image, rotated_rect)
             
             # 添加光环效果
             glow_size = max(rotated_rect.width, rotated_rect.height) + 10
@@ -238,10 +383,35 @@ class Player(Entity):
                 glow_size//2
             )
             glow_rect = glow_surface.get_rect(center=rotated_rect.center)
-            self.config.screen.blit(glow_surface, glow_rect)
+            surface.blit(glow_surface, glow_rect)
             
-        # 绘制玩家
-        self.config.screen.blit(rotated_image, rotated_rect)
+        # 穿越模式时添加透明效果
+        if self.is_ghost_mode:
+            # 创建一个带有透明度的副本
+            alpha_image = rotated_image.copy()
+            alpha_image.set_alpha(self.ghost_alpha)
+            surface.blit(alpha_image, rotated_rect)
+            
+        # 夜间模式时添加夜视效果
+        if self.is_night_mode:
+            # 创建一个带有透明度的副本
+            alpha_image = rotated_image.copy()
+            alpha_image.set_alpha(200)
+            surface.blit(alpha_image, rotated_rect)
+            
+            # 添加夜视效果
+            night_vision_size = max(rotated_rect.width, rotated_rect.height) + 20
+            night_vision_surface = pygame.Surface((night_vision_size, night_vision_size), pygame.SRCALPHA)
+            pygame.draw.circle(
+                night_vision_surface, 
+                (0, 0, 255, 100),  # 蓝色夜视
+                (night_vision_size//2, night_vision_size//2), 
+                night_vision_size//2
+            )
+            night_vision_rect = night_vision_surface.get_rect(center=rotated_rect.center)
+            surface.blit(night_vision_surface, night_vision_rect)
+            
+        surface.blit(rotated_image, rotated_rect)
 
     def stop_wings(self) -> None:
         self.img_gen = cycle([self.img_idx])
@@ -272,6 +442,10 @@ class Player(Entity):
         if self.invincible:
             return False
 
+        # 如果处于穿越模式，不检测碰撞
+        if self.mode == PlayerMode.GHOST:
+            return False
+
         # if player crashes into ground
         if self.collide(floor):
             self.crashed = True
@@ -290,3 +464,23 @@ class Player(Entity):
                 return True
 
         return False
+
+    def update_bomb(self) -> None:
+        """更新炮弹状态"""
+        if not self.bomb_ready:
+            current_time = pygame.time.get_ticks()
+            if current_time - self.bomb_start_time >= self.bomb_duration:
+                self.bomb_ready = True
+                print(f"Bomb deactivated! is_bomb_mode={self.is_bomb_mode}, bomb_ready={self.bomb_ready}")
+
+    def activate_bomb(self) -> None:
+        """激活炮弹模式"""
+        if self.bomb_ready:
+            self.bomb_ready = False
+            self.is_bomb_mode = True  # 设置为炮弹模式
+            self.bomb_start_time = pygame.time.get_ticks()
+            # 激活爆炸效果
+            self.explosion_active = True
+            self.explosion_start_time = pygame.time.get_ticks()
+            self.config.sounds.point.play()  # 播放炮弹音效
+            print(f"Bomb activated! is_bomb_mode={self.is_bomb_mode}, bomb_ready={self.bomb_ready}")
