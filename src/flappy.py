@@ -201,58 +201,81 @@ class Flappy:
                 pygame.draw.rect(self.config.screen, box_color_active, classic_rect, 3, border_radius=5)  # 边框
             else:
                 # 非活跃按钮 - 只绘制边框
-                pygame.draw.rect(self.config.screen, (30, 30, 30), classic_rect)  # 浅色填充
+                transparent_color = (30, 30, 30, 80)  # 更浅的半透明
+                surf = pygame.Surface(classic_rect.size, pygame.SRCALPHA)
+                surf.fill(transparent_color)
+                self.config.screen.blit(surf, classic_rect)
                 pygame.draw.rect(self.config.screen, box_color_inactive, classic_rect, 2, border_radius=5)  # 边框
             
             # 绘制限时模式按钮
             if selected_index == 1:
-                # 活跃按钮
-                pygame.draw.rect(self.config.screen, (50, 50, 50), timed_rect)  # 深色填充
-                pygame.draw.rect(self.config.screen, box_color_active, timed_rect, 3, border_radius=5)  # 边框
+                transparent_color = (50, 50, 50, 120)
+                surf = pygame.Surface(timed_rect.size, pygame.SRCALPHA)
+                surf.fill(transparent_color)
+                self.config.screen.blit(surf, timed_rect)
+                pygame.draw.rect(self.config.screen, box_color_active, timed_rect, 3, border_radius=5)
             else:
-                # 非活跃按钮
-                pygame.draw.rect(self.config.screen, (30, 30, 30), timed_rect)  # 浅色填充
-                pygame.draw.rect(self.config.screen, box_color_inactive, timed_rect, 2, border_radius=5)  # 边框
+                transparent_color = (30, 30, 30, 80)
+                surf = pygame.Surface(timed_rect.size, pygame.SRCALPHA)
+                surf.fill(transparent_color)
+                self.config.screen.blit(surf, timed_rect)
+                pygame.draw.rect(self.config.screen, box_color_inactive, timed_rect, 2, border_radius=5)
             
             # 绘制反向模式按钮
             if selected_index == 2:
-                # 活跃按钮
-                pygame.draw.rect(self.config.screen, (50, 50, 50), reverse_rect)  # 深色填充
-                pygame.draw.rect(self.config.screen, box_color_active, reverse_rect, 3, border_radius=5)  # 边框
+                transparent_color = (50, 50, 50, 120)
+                surf = pygame.Surface(reverse_rect.size, pygame.SRCALPHA)
+                surf.fill(transparent_color)
+                self.config.screen.blit(surf, reverse_rect)
+                pygame.draw.rect(self.config.screen, box_color_active, reverse_rect, 3, border_radius=5)
             else:
-                # 非活跃按钮
-                pygame.draw.rect(self.config.screen, (30, 30, 30), reverse_rect)  # 浅色填充
-                pygame.draw.rect(self.config.screen, box_color_inactive, reverse_rect, 2, border_radius=5)  # 边框
+                transparent_color = (30, 30, 30, 80)
+                surf = pygame.Surface(reverse_rect.size, pygame.SRCALPHA)
+                surf.fill(transparent_color)
+                self.config.screen.blit(surf, reverse_rect)
+                pygame.draw.rect(self.config.screen, box_color_inactive, reverse_rect, 2, border_radius=5)
             
             # 绘制穿越模式按钮
             if selected_index == 3:
-                # 活跃按钮
-                pygame.draw.rect(self.config.screen, (50, 50, 50), ghost_rect)  # 深色填充
-                pygame.draw.rect(self.config.screen, box_color_active, ghost_rect, 3, border_radius=5)  # 边框
+                transparent_color = (50, 50, 50, 120)
+                surf = pygame.Surface(ghost_rect.size, pygame.SRCALPHA)
+                surf.fill(transparent_color)
+                self.config.screen.blit(surf, ghost_rect)
+                pygame.draw.rect(self.config.screen, box_color_active, ghost_rect, 3, border_radius=5)
             else:
-                # 非活跃按钮
-                pygame.draw.rect(self.config.screen, (30, 30, 30), ghost_rect)  # 浅色填充
-                pygame.draw.rect(self.config.screen, box_color_inactive, ghost_rect, 2, border_radius=5)  # 边框
+                transparent_color = (30, 30, 30, 80)
+                surf = pygame.Surface(ghost_rect.size, pygame.SRCALPHA)
+                surf.fill(transparent_color)
+                self.config.screen.blit(surf, ghost_rect)
+                pygame.draw.rect(self.config.screen, box_color_inactive, ghost_rect, 2, border_radius=5)
             
             # 绘制夜间模式按钮
             if selected_index == 4:
-                # 活跃按钮
-                pygame.draw.rect(self.config.screen, (50, 50, 50), night_rect)  # 深色填充
-                pygame.draw.rect(self.config.screen, box_color_active, night_rect, 3, border_radius=5)  # 边框
+                transparent_color = (50, 50, 50, 120)
+                surf = pygame.Surface(night_rect.size, pygame.SRCALPHA)
+                surf.fill(transparent_color)
+                self.config.screen.blit(surf, night_rect)
+                pygame.draw.rect(self.config.screen, box_color_active, night_rect, 3, border_radius=5)
             else:
-                # 非活跃按钮
-                pygame.draw.rect(self.config.screen, (30, 30, 30), night_rect)  # 浅色填充
-                pygame.draw.rect(self.config.screen, box_color_inactive, night_rect, 2, border_radius=5)  # 边框
+                transparent_color = (30, 30, 30, 80)
+                surf = pygame.Surface(night_rect.size, pygame.SRCALPHA)
+                surf.fill(transparent_color)
+                self.config.screen.blit(surf, night_rect)
+                pygame.draw.rect(self.config.screen, box_color_inactive, night_rect, 2, border_radius=5)
             
             # 绘制极速模式按钮
             if selected_index == 5:
-                # 活跃按钮
-                pygame.draw.rect(self.config.screen, (50, 50, 50), speed_rect)  # 深色填充
-                pygame.draw.rect(self.config.screen, box_color_active, speed_rect, 3, border_radius=5)  # 边框
+                transparent_color = (50, 50, 50, 120)
+                surf = pygame.Surface(speed_rect.size, pygame.SRCALPHA)
+                surf.fill(transparent_color)
+                self.config.screen.blit(surf, speed_rect)
+                pygame.draw.rect(self.config.screen, box_color_active, speed_rect, 3, border_radius=5)
             else:
-                # 非活跃按钮
-                pygame.draw.rect(self.config.screen, (30, 30, 30), speed_rect)  # 浅色填充
-                pygame.draw.rect(self.config.screen, box_color_inactive, speed_rect, 2, border_radius=5)  # 边框
+                transparent_color = (30, 30, 30, 80)
+                surf = pygame.Surface(speed_rect.size, pygame.SRCALPHA)
+                surf.fill(transparent_color)
+                self.config.screen.blit(surf, speed_rect)
+                pygame.draw.rect(self.config.screen, box_color_inactive, speed_rect, 2, border_radius=5)
             
             # 绘制文本
             self.config.screen.blit(classic_text, classic_pos)

@@ -48,6 +48,9 @@ class Player(Entity):
         # 穿越模式相关属性
         self.is_ghost_mode = False  # 是否为穿越模式
         self.ghost_alpha = 160  # 穿越模式下的透明度
+        self.ghost_life = 10  # 穿越模式下的穿越次数
+        self.last_collision_time = 0  # 上次碰撞时间
+        self.collision_cooldown = 1000  # 碰撞冷却时间(毫秒)
         # 夜间模式相关属性
         self.is_night_mode = False  # 是否为夜间模式
         self.night_vision_range = 120  # 夜视范围
@@ -180,6 +183,7 @@ class Player(Entity):
         
         # 穿越模式相关
         self.is_ghost_mode = True  # 确保设置穿越模式标志
+        self.ghost_life = 10  # 重置穿越次数
 
     def reset_vals_night(self) -> None:
         """重置夜间模式的值"""
@@ -392,6 +396,19 @@ class Player(Entity):
             alpha_image.set_alpha(self.ghost_alpha)
             surface.blit(alpha_image, rotated_rect)
             
+            # 显示剩余穿越次数
+            font = pygame.font.Font(None, 36)
+            life_text = font.render(f"Ghost Life: {self.ghost_life}", True, (255, 255, 255))
+            life_text_outline = font.render(f"Ghost Life: {self.ghost_life}", True, (0, 0, 0))
+            text_pos = (10, 10)
+            # 先绘制描边
+            surface.blit(life_text_outline, (text_pos[0]-1, text_pos[1]-1))
+            surface.blit(life_text_outline, (text_pos[0]+1, text_pos[1]-1))
+            surface.blit(life_text_outline, (text_pos[0]-1, text_pos[1]+1))
+            surface.blit(life_text_outline, (text_pos[0]+1, text_pos[1]+1))
+            # 再绘制文本
+            surface.blit(life_text, text_pos)
+            
         # 夜间模式时添加夜视效果
         if self.is_night_mode:
             # 创建一个带有透明度的副本
@@ -442,8 +459,39 @@ class Player(Entity):
         if self.invincible:
             return False
 
-        # 如果处于穿越模式，不检测碰撞
+        # 如果处于穿越模式，检查是否还有穿越次数
         if self.mode == PlayerMode.GHOST:
+            # 检测是否有碰撞发生
+            has_collision = False
+            collision_entity = None
+            if self.collide(floor):
+                has_collision = True
+                collision_entity = "floor"
+            else:
+                for pipe in pipes.upper:
+                    if self.collide(pipe):
+                        has_collision = True
+                        collision_entity = "pipe"
+                        break
+                if not has_collision:
+                    for pipe in pipes.lower:
+                        if self.collide(pipe):
+                            has_collision = True
+                            collision_entity = "pipe"
+                            break
+            
+            # 如果有碰撞，并且冷却时间已过，消耗一次穿越次数
+            current_time = pygame.time.get_ticks()
+            if has_collision and current_time - self.last_collision_time >= self.collision_cooldown:
+                self.ghost_life -= 1
+                self.last_collision_time = current_time
+                self.crash_entity = collision_entity
+                
+                # 如果穿越次数用完，标记为已碰撞
+                if self.ghost_life <= 0:
+                    self.crashed = True
+                    return True
+            
             return False
 
         # if player crashes into ground
