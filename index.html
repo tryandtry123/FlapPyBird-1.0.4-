@@ -165,7 +165,7 @@
         
         <div class="game-container">
             <!-- pygbag生成的画布将会在这里插入 -->
-            <canvas id="pygame-canvas" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
+            
             
             <!-- 加载界面 -->
             <div class="loading-screen" id="loading-screen">
@@ -251,7 +251,8 @@
     // 检查游戏是否真的加载完成
     function checkGameLoaded() {
         // 尝试查找pygbag加载的canvas元素
-        const pyCanvas = document.querySelector('canvas:not(#pygame-canvas)');
+    
+        const pyCanvas = document.querySelector('canvas');   // 直接找第一块 canvas
         
         if (pyCanvas && pyCanvas.style.visibility === 'visible') {
             hideLoadingScreen();
